@@ -32,16 +32,16 @@ lib.callback.register('hype-scenetool:server:listScenes', function(source)
 end)
 
 lib.callback.register('hype-scenetool:server:saveScene', function(source, name, data)
-    if not allowed(source) then return false, 'yetki yok' end
+    if not allowed(source) then return false, 'scenes.err.no_permission' end
     name = sanitize(name)
-    if not name then return false, 'geçersiz ad' end
-    if type(data) ~= 'table' or #data == 0 then return false, 'boş sahne' end
+    if not name then return false, 'scenes.err.invalid_name' end
+    if type(data) ~= 'table' or #data == 0 then return false, 'scenes.err.empty' end
 
     local ok, encoded = pcall(json.encode, data)
-    if not ok or type(encoded) ~= 'string' then return false, 'sahne kodlanamadı' end
-    if #encoded > MAX_SIZE then return false, 'sahne çok büyük' end
+    if not ok or type(encoded) ~= 'string' then return false, 'scenes.err.encode' end
+    if #encoded > MAX_SIZE then return false, 'scenes.err.too_big' end
     if not SaveResourceFile(resource, ('scenes/%s.json'):format(name), encoded, -1) then
-        return false, 'dosya yazılamadı'
+        return false, 'scenes.err.write'
     end
 
     local list = readIndex()

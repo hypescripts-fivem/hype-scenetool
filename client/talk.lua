@@ -107,7 +107,7 @@ end
 function Talk.toggleGestures()
     Talk.gestures = not Talk.gestures
     run()
-    Notify(Talk.gestures and 'Konuşurken el hareketi açık' or 'Konuşurken el hareketi kapalı',
+    Notify(locale(Talk.gestures and 'talk.gestures_on' or 'talk.gestures_off'),
         Talk.gestures and 'success' or 'inform')
 end
 

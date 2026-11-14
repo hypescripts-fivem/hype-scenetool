@@ -5,7 +5,7 @@ function SpawnVehicle(model, label, point)
     point = point or GetSpawnPoint()
     local vehicle = CreateVehicle(hash, point.x, point.y, point.z, point.w, true, false)
     SetModelAsNoLongerNeeded(hash)
-    if vehicle == 0 then return Notify('Araç oluşturulamadı', 'error') end
+    if vehicle == 0 then return Notify(locale('error.vehicle_failed'), 'error') end
 
     SetEntityAsMissionEntity(vehicle, true, true)
     SetVehicleOnGroundProperly(vehicle)
@@ -30,7 +30,7 @@ function SpawnPed(model, label, point)
     point = point or GetSpawnPoint()
     local ped = CreatePed(4, hash, point.x, point.y, point.z, point.w, true, true)
     SetModelAsNoLongerNeeded(hash)
-    if ped == 0 then return Notify('NPC oluşturulamadı', 'error') end
+    if ped == 0 then return Notify(locale('error.ped_failed'), 'error') end
 
     SetPedDefaultComponentVariation(ped)
     SetupScenePed(ped)
@@ -41,13 +41,13 @@ end
 function SpawnClone(point)
     point = point or GetSpawnPoint()
     local ped = ClonePed(cache.ped, true, false, true)
-    if ped == 0 then return Notify('Kopya oluşturulamadı', 'error') end
+    if ped == 0 then return Notify(locale('error.clone_failed'), 'error') end
 
     SetEntityCoords(ped, point.x, point.y, point.z, false, false, false, false)
     SetEntityHeading(ped, point.w)
     SetupScenePed(ped)
 
-    local item = Scene.add(ped, 'ped', GetEntityModel(ped), 'Benim kopyam')
+    local item = Scene.add(ped, 'ped', GetEntityModel(ped), 'entity.clone')
     item.clone = true
     return item
 end
@@ -70,7 +70,7 @@ function SpawnProp(model, label, point)
     point = point or GetSpawnPoint()
     local object = CreateObject(hash, point.x, point.y, point.z, true, true, false)
     SetModelAsNoLongerNeeded(hash)
-    if object == 0 then return Notify('Obje oluşturulamadı', 'error') end
+    if object == 0 then return Notify(locale('error.prop_failed'), 'error') end
 
     SetEntityAsMissionEntity(object, true, true)
     SetEntityHeading(object, point.w)
@@ -93,7 +93,7 @@ function SpawnTrailer(truckItem, model, label)
     local offset = GetOffsetFromEntityInWorldCoords(truck, 0.0, truckMin.y - trailerMax.y - 0.5, 0.0)
     local point = vec4(offset.x, offset.y, offset.z, GetEntityHeading(truck))
 
-    local trailerItem = SpawnVehicle(model, label or 'Dorse', point)
+    local trailerItem = SpawnVehicle(model, label or 'entity.trailer', point)
     if not trailerItem then return end
 
     AttachVehicleToTrailer(truck, trailerItem.handle, 1.1)

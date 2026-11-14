@@ -4,7 +4,12 @@ Scene = {
 }
 
 function Notify(message, type)
-    lib.notify({ title = 'Sahne Aracı', description = message, type = type or 'inform' })
+    lib.notify({ title = locale('title'), description = message, type = type or 'inform' })
+end
+
+--- Display text for a stored label: a locale key, or plain text kept as is.
+function Label(label)
+    return locale(tostring(label))
 end
 
 function RequestControl(entity, timeout)
@@ -23,11 +28,11 @@ end
 function LoadModel(model)
     local hash = type(model) == 'number' and model or joaat(model)
     if not IsModelInCdimage(hash) or not IsModelValid(hash) then
-        Notify(('Model bulunamadı: %s'):format(model), 'error')
+        Notify(locale('error.model_not_found', model), 'error')
         return
     end
     if not pcall(lib.requestModel, hash, 10000) then
-        Notify(('Model yüklenemedi: %s'):format(model), 'error')
+        Notify(locale('error.model_load_failed', model), 'error')
         return
     end
     return hash

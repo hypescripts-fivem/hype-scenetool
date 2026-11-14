@@ -116,23 +116,23 @@ function OpenScenesMenu()
 
     local options = {
         {
-            title = 'Sahneyi kaydet',
-            description = 'Oluşturduğun her şey konumu, rengi ve animasyonuyla kaydedilir',
+            title = locale('scenes.save'),
+            description = locale('scenes.save_desc'),
             icon = 'floppy-disk',
             onSelect = function()
-                local input = lib.inputDialog('Sahneyi kaydet', {
-                    { type = 'input', label = 'Sahne adı', description = 'Harf, rakam, - ve _', required = true, max = 32 },
+                local input = lib.inputDialog(locale('scenes.save'), {
+                    { type = 'input', label = locale('scenes.name'), description = locale('scenes.name_desc'), required = true, max = 32 },
                 })
                 if not input then return OpenScenesMenu() end
 
                 local data = SerializeScene()
                 if #data == 0 then
-                    Notify('Kaydedilecek bir şey yok', 'error')
+                    Notify(locale('scenes.nothing'), 'error')
                     return OpenScenesMenu()
                 end
 
                 local ok, err = lib.callback.await('hype-scenetool:server:saveScene', false, input[1], data)
-                Notify(ok and ('Sahne kaydedildi: %s'):format(input[1]) or ('Kaydedilemedi: %s'):format(err or '?'),
+                Notify(ok and locale('scenes.saved', input[1]) or locale('scenes.save_failed', Label(err or '?')),
                     ok and 'success' or 'error')
                 OpenScenesMenu()
             end,
@@ -142,7 +142,7 @@ function OpenScenesMenu()
     for _, scene in ipairs(scenes) do
         options[#options + 1] = {
             title = scene.name,
-            description = ('%d varlık · %s'):format(scene.count or 0, scene.date or ''),
+            description = locale('scenes.entry', scene.count or 0, scene.date or ''),
             icon = 'film',
             arrow = true,
             onSelect = function()
@@ -152,29 +152,29 @@ function OpenScenesMenu()
                     menu = 'hype_scene_list',
                     options = {
                         {
-                            title = 'Yükle',
-                            description = 'Varlıklar kaydedildikleri yerde oluşur',
+                            title = locale('scenes.load'),
+                            description = locale('scenes.load_desc'),
                             icon = 'play',
                             onSelect = function()
                                 local data = lib.callback.await('hype-scenetool:server:loadScene', false, scene.name)
-                                if not data then return Notify('Sahne okunamadı', 'error') end
-                                Notify(('%d varlık yüklendi'):format(LoadScene(data)), 'success')
+                                if not data then return Notify(locale('scenes.read_failed'), 'error') end
+                                Notify(locale('scenes.loaded', LoadScene(data)), 'success')
                             end,
                         },
                         {
-                            title = 'Sil',
+                            title = locale('common.delete'),
                             icon = 'trash',
                             iconColor = '#ef4444',
                             onSelect = function()
                                 local confirm = lib.alertDialog({
-                                    header = 'Sahneyi sil',
-                                    content = ('**%s** kalıcı olarak silinsin mi?'):format(scene.name),
+                                    header = locale('scenes.delete_title'),
+                                    content = locale('scenes.delete_confirm', scene.name),
                                     centered = true,
                                     cancel = true,
                                 })
                                 if confirm == 'confirm' then
                                     lib.callback.await('hype-scenetool:server:deleteScene', false, scene.name)
-                                    Notify('Sahne silindi', 'success')
+                                    Notify(locale('scenes.deleted'), 'success')
                                 end
                                 OpenScenesMenu()
                             end,
@@ -186,6 +186,6 @@ function OpenScenesMenu()
         }
     end
 
-    lib.registerContext({ id = 'hype_scene_list', title = 'Kayıtlı sahneler', menu = 'hype_scene_main', options = options })
+    lib.registerContext({ id = 'hype_scene_list', title = locale('scenes.title'), menu = 'hype_scene_main', options = options })
     lib.showContext('hype_scene_list')
 end

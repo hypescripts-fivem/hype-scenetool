@@ -15,15 +15,17 @@ local KEY = {
     cancel = 194,                                    -- Backspace
 }
 
-local HELP = table.concat({
-    '**Düzenleme modu**',
-    '[W/A/S/D] Taşı · [Q/E] Aşağı / Yukarı',
-    '[←/→] Döndür · [↑/↓] Eğ · [Z/C] Yatır',
-    '[Shift] Hızlı · [Ctrl] Yavaş',
-    '[H] Baktığın yere taşı · [G] Yere oturt',
-    '[R] Eğimi sıfırla · [X] Sabitle aç/kapa',
-    '[Enter] Kaydet · [Backspace] İptal',
-}, '  \n')
+local function helpText()
+    return table.concat({
+        ('**%s**'):format(locale('editor.help_title')),
+        locale('editor.help_move'),
+        locale('editor.help_rotate'),
+        locale('editor.help_speed'),
+        locale('editor.help_place'),
+        locale('editor.help_reset'),
+        locale('editor.help_confirm'),
+    }, '  \n')
+end
 
 local function pressed(control) return IsDisabledControlPressed(0, control) end
 local function justPressed(control) return IsDisabledControlJustPressed(0, control) end
@@ -47,11 +49,11 @@ function IsEditing() return editing end
 function StartEditor(item, onDone)
     if editing then return end
     local entity = item.handle
-    if not DoesEntityExist(entity) then return Notify('Varlık artık yok', 'error') end
+    if not DoesEntityExist(entity) then return Notify(locale('common.entity_gone'), 'error') end
     if item.kind == 'ped' and IsPedInAnyVehicle(entity, false) then
-        return Notify('NPC araçta. Aracı düzenle ya da önce indir.', 'error')
+        return Notify(locale('editor.ped_in_vehicle'), 'error')
     end
-    if not RequestControl(entity) then return Notify('Varlığın kontrolü alınamadı', 'error') end
+    if not RequestControl(entity) then return Notify(locale('editor.no_control'), 'error') end
 
     editing = true
     local isPed = item.kind == 'ped'
@@ -61,7 +63,7 @@ function StartEditor(item, onDone)
     local markerHeight = maxDim.z + 0.6
 
     FreezeEntityPosition(entity, true)
-    lib.showTextUI(HELP, { position = 'left-center' })
+    lib.showTextUI(helpText(), { position = 'left-center' })
 
     CreateThread(function()
         local saved = false
@@ -126,13 +128,13 @@ function StartEditor(item, onDone)
 
             if justPressed(KEY.freeze) then
                 item.frozen = not item.frozen
-                Notify(item.frozen and 'Sabitlendi (fizik kapalı)' or 'Sabitleme kaldırıldı', 'inform')
+                Notify(locale(item.frozen and 'editor.frozen_on' or 'editor.frozen_off'), 'inform')
             end
 
             DrawMarker(0, pos.x, pos.y, pos.z + markerHeight, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
                 0.4, 0.4, 0.4, 255, 160, 40, 200, true, true, 2, false, nil, nil, false)
-            DrawText2D(('X %.2f  Y %.2f  Z %.2f   |   Eğim %.1f  Yatış %.1f  Yön %.1f   |   %s'):format(
-                pos.x, pos.y, pos.z, rot.x, rot.y, rot.z, item.frozen and 'SABİT' or 'SERBEST'), 0.5, 0.92, 0.38)
+            DrawText2D(locale('editor.hud', pos.x, pos.y, pos.z, rot.x, rot.y, rot.z,
+                locale(item.frozen and 'editor.frozen' or 'editor.free')), 0.5, 0.92, 0.38)
 
             if justPressed(KEY.confirm) then
                 saved = true
@@ -149,7 +151,7 @@ function StartEditor(item, onDone)
 
         lib.hideTextUI()
         editing = false
-        Notify(saved and 'Konum kaydedildi' or 'Düzenleme iptal edildi', saved and 'success' or 'inform')
+        Notify(locale(saved and 'editor.saved' or 'editor.cancelled'), saved and 'success' or 'inform')
         if onDone then onDone() end
     end)
 end

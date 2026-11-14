@@ -178,7 +178,7 @@ end
 
 function Cinema.toggleTimeStop()
     if Cinema.timeStopped then resumeTime() else startTimeStop() end
-    Notify(Cinema.timeStopped and 'Zaman durdu' or 'Zaman akıyor', 'inform')
+    Notify(locale(Cinema.timeStopped and 'cinema.time_stopped' or 'cinema.time_flows'), 'inform')
 end
 
 function Cinema.clearArea(radius)

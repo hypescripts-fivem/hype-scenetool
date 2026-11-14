@@ -9,11 +9,11 @@ local function openSpawnMenu(id, title, presets, spawn, extra)
     local options = extra and { extra } or {}
 
     options[#options + 1] = {
-        title = 'Model adı yaz',
-        description = 'Oyundaki ya da sunucuya eklenmiş herhangi bir model',
+        title = locale('spawn.custom_model'),
+        description = locale('spawn.custom_model_desc'),
         icon = 'keyboard',
         onSelect = function()
-            local result = input(title, { { type = 'input', label = 'Model', required = true } })
+            local result = input(title, { { type = 'input', label = locale('spawn.model'), required = true } })
             if result then
                 local item = spawn(result[1], result[1])
                 if item then return OpenEntityMenu(item) end
@@ -24,7 +24,7 @@ local function openSpawnMenu(id, title, presets, spawn, extra)
 
     for _, preset in ipairs(presets) do
         options[#options + 1] = {
-            title = preset.label,
+            title = Label(preset.label),
             description = preset.model,
             onSelect = function()
                 local item = spawn(preset.model, preset.label)
@@ -38,16 +38,16 @@ local function openSpawnMenu(id, title, presets, spawn, extra)
 end
 
 local function seatOptions(vehicle)
-    local options = { { value = '-1', label = 'Sürücü' } }
+    local options = { { value = '-1', label = locale('seat.driver') } }
     for seat = 0, GetVehicleMaxNumberOfPassengers(vehicle) - 1 do
-        options[#options + 1] = { value = tostring(seat), label = ('Yolcu %d'):format(seat + 1) }
+        options[#options + 1] = { value = tostring(seat), label = locale('seat.passenger', seat + 1) }
     end
     return options
 end
 
 local function chooseSeat(vehicle)
-    local result = input('Koltuk seç', {
-        { type = 'select', label = 'Koltuk', options = seatOptions(vehicle), default = '-1', required = true },
+    local result = input(locale('seat.title'), {
+        { type = 'select', label = locale('seat.label'), options = seatOptions(vehicle), default = '-1', required = true },
     })
     return result and tonumber(result[1])
 end
@@ -55,7 +55,7 @@ end
 local function waypoint()
     local blip = GetFirstBlipInfoId(8)
     if not DoesBlipExist(blip) then
-        Notify('Önce haritada bir waypoint işaretle', 'error')
+        Notify(locale('common.no_waypoint'), 'error')
         return
     end
     return GetBlipInfoIdCoord(blip)
@@ -68,14 +68,14 @@ local function exactTransform(item)
         { type = 'number', label = 'X', default = c.x, precision = 3, step = 0.01, required = true },
         { type = 'number', label = 'Y', default = c.y, precision = 3, step = 0.01, required = true },
         { type = 'number', label = 'Z', default = c.z, precision = 3, step = 0.01, required = true },
-        { type = 'number', label = 'Yön (heading)', default = r.z, precision = 2, step = 1, required = true },
+        { type = 'number', label = locale('entity.heading'), default = r.z, precision = 2, step = 1, required = true },
     }
     if item.kind ~= 'ped' then
-        rows[#rows + 1] = { type = 'number', label = 'Eğim (pitch)', default = r.x, precision = 2, step = 1 }
-        rows[#rows + 1] = { type = 'number', label = 'Yatış (roll)', default = r.y, precision = 2, step = 1 }
+        rows[#rows + 1] = { type = 'number', label = locale('entity.pitch'), default = r.x, precision = 2, step = 1 }
+        rows[#rows + 1] = { type = 'number', label = locale('entity.roll'), default = r.y, precision = 2, step = 1 }
     end
 
-    local result = input('Konum ve rotasyon', rows)
+    local result = input(locale('entity.transform_title'), rows)
     if not result or not RequestControl(entity) then return end
 
     SetEntityCoordsNoOffset(entity, result[1], result[2], result[3], false, false, false)
@@ -92,8 +92,8 @@ local function vehicleOptions(item)
 
     return {
         {
-            title = 'Bin',
-            description = 'Seçtiğin koltuğa ışınlan',
+            title = locale('vehicle.enter'),
+            description = locale('vehicle.enter_desc'),
             icon = 'car-side',
             onSelect = function()
                 local seat = chooseSeat(vehicle)
@@ -101,16 +101,16 @@ local function vehicleOptions(item)
             end,
         },
         {
-            title = 'Dorse bağla',
-            description = 'Tırın arkasına dorse oluşturup bağlar',
+            title = locale('vehicle.trailer'),
+            description = locale('vehicle.trailer_desc'),
             icon = 'trailer',
             onSelect = function()
                 local options = {}
                 for _, trailer in ipairs(Config.Trailers) do
-                    options[#options + 1] = { value = trailer.model, label = trailer.label }
+                    options[#options + 1] = { value = trailer.model, label = Label(trailer.label) }
                 end
-                local result = input('Dorse bağla', {
-                    { type = 'select', label = 'Dorse', options = options, required = true, searchable = true },
+                local result = input(locale('vehicle.trailer'), {
+                    { type = 'select', label = locale('vehicle.trailer_label'), options = options, required = true, searchable = true },
                 })
                 if result then
                     local label
@@ -123,7 +123,7 @@ local function vehicleOptions(item)
             end,
         },
         {
-            title = 'Motor aç / kapa',
+            title = locale('vehicle.engine'),
             icon = 'power-off',
             onSelect = function()
                 RequestControl(vehicle)
@@ -132,14 +132,14 @@ local function vehicleOptions(item)
             end,
         },
         {
-            title = 'Farlar',
+            title = locale('vehicle.lights'),
             icon = 'lightbulb',
             onSelect = function()
-                local result = input('Farlar', {
-                    { type = 'select', label = 'Durum', required = true, default = '2', options = {
-                        { value = '1', label = 'Kapalı' },
-                        { value = '2', label = 'Açık' },
-                        { value = '3', label = 'Uzun far' },
+                local result = input(locale('vehicle.lights'), {
+                    { type = 'select', label = locale('vehicle.lights_state'), required = true, default = '2', options = {
+                        { value = '1', label = locale('vehicle.lights_off') },
+                        { value = '2', label = locale('vehicle.lights_on') },
+                        { value = '3', label = locale('vehicle.lights_high') },
                     } },
                 })
                 if result then
@@ -152,8 +152,8 @@ local function vehicleOptions(item)
             end,
         },
         {
-            title = 'Korna çal',
-            description = '2 saniye',
+            title = locale('vehicle.horn'),
+            description = locale('vehicle.horn_desc'),
             icon = 'bullhorn',
             onSelect = function()
                 StartVehicleHorn(vehicle, 2000, joaat('HELDDOWN'), false)
@@ -161,20 +161,20 @@ local function vehicleOptions(item)
             end,
         },
         {
-            title = 'Kapılar',
+            title = locale('vehicle.doors'),
             icon = 'door-open',
             onSelect = function()
                 local doors = {
-                    { value = '0', label = 'Sol ön' }, { value = '1', label = 'Sağ ön' },
-                    { value = '2', label = 'Sol arka' }, { value = '3', label = 'Sağ arka' },
-                    { value = '4', label = 'Kaput' }, { value = '5', label = 'Bagaj' },
+                    { value = '0', label = locale('vehicle.door_fl') }, { value = '1', label = locale('vehicle.door_fr') },
+                    { value = '2', label = locale('vehicle.door_rl') }, { value = '3', label = locale('vehicle.door_rr') },
+                    { value = '4', label = locale('vehicle.door_hood') }, { value = '5', label = locale('vehicle.door_trunk') },
                 }
                 local open = {}
                 for i = 0, 5 do
                     if GetVehicleDoorAngleRatio(vehicle, i) > 0.1 then open[#open + 1] = tostring(i) end
                 end
-                local result = input('Açık kapılar', {
-                    { type = 'multi-select', label = 'Kapılar', options = doors, default = open },
+                local result = input(locale('vehicle.doors_title'), {
+                    { type = 'multi-select', label = locale('vehicle.doors'), options = doors, default = open },
                 })
                 if result then
                     RequestControl(vehicle)
@@ -192,17 +192,17 @@ local function vehicleOptions(item)
             end,
         },
         {
-            title = 'Renk, plaka, livery',
+            title = locale('vehicle.looks'),
             icon = 'palette',
             onSelect = function()
                 local liveries = GetVehicleLiveryCount(vehicle)
-                local result = input('Görünüm', {
-                    { type = 'color', label = 'Ana renk', default = '#ffffff' },
-                    { type = 'color', label = 'İkinci renk', default = '#ffffff' },
-                    { type = 'input', label = 'Plaka', default = GetVehicleNumberPlateText(vehicle), max = 8 },
-                    { type = 'number', label = ('Livery (0-%d)'):format(math.max(liveries - 1, 0)),
+                local result = input(locale('vehicle.looks_title'), {
+                    { type = 'color', label = locale('vehicle.primary'), default = '#ffffff' },
+                    { type = 'color', label = locale('vehicle.secondary'), default = '#ffffff' },
+                    { type = 'input', label = locale('vehicle.plate'), default = GetVehicleNumberPlateText(vehicle), max = 8 },
+                    { type = 'number', label = locale('vehicle.livery', math.max(liveries - 1, 0)),
                       default = math.max(GetVehicleLivery(vehicle), 0), min = 0, max = math.max(liveries - 1, 0) },
-                    { type = 'checkbox', label = 'Renkleri değiştir', checked = false },
+                    { type = 'checkbox', label = locale('vehicle.apply_colors'), checked = false },
                 })
                 if result then
                     RequestControl(vehicle)
@@ -218,16 +218,16 @@ local function vehicleOptions(item)
             end,
         },
         {
-            title = 'Kir ve hasar',
+            title = locale('vehicle.damage'),
             icon = 'car-burst',
             onSelect = function()
-                local result = input('Kir ve hasar', {
-                    { type = 'slider', label = 'Kir', default = math.floor(GetVehicleDirtLevel(vehicle)), min = 0, max = 15 },
-                    { type = 'select', label = 'Hasar', default = 'none', options = {
-                        { value = 'none', label = 'Değiştirme' },
-                        { value = 'fix', label = 'Tamir et' },
-                        { value = 'light', label = 'Hafif hasar (ön)' },
-                        { value = 'heavy', label = 'Ağır hasar' },
+                local result = input(locale('vehicle.damage'), {
+                    { type = 'slider', label = locale('vehicle.dirt'), default = math.floor(GetVehicleDirtLevel(vehicle)), min = 0, max = 15 },
+                    { type = 'select', label = locale('vehicle.damage_label'), default = 'none', options = {
+                        { value = 'none', label = locale('vehicle.damage_none') },
+                        { value = 'fix', label = locale('vehicle.damage_fix') },
+                        { value = 'light', label = locale('vehicle.damage_light') },
+                        { value = 'heavy', label = locale('vehicle.damage_heavy') },
                     } },
                 })
                 if result then
@@ -258,27 +258,27 @@ local function pedOptions(item)
 
     return {
         {
-            title = 'Animasyon ve senaryo',
+            title = locale('ped.anims'),
             icon = 'person-walking',
             arrow = true,
             onSelect = function() OpenAnimMenu(ped, item, 'hype_scene_entity') end,
         },
         {
-            title = 'Araca bindir',
-            description = 'Sahnedeki bir araca ışınlar',
+            title = locale('ped.put_in'),
+            description = locale('ped.put_in_desc'),
             icon = 'car-side',
             onSelect = function()
                 local vehicles = Scene.vehicles()
                 if #vehicles == 0 then
-                    Notify('Sahnede araç yok', 'error')
+                    Notify(locale('ped.no_vehicles'), 'error')
                     return reopen()
                 end
                 local options = {}
                 for _, vehicleItem in ipairs(vehicles) do
-                    options[#options + 1] = { value = tostring(vehicleItem.id), label = ('#%d %s'):format(vehicleItem.id, vehicleItem.label) }
+                    options[#options + 1] = { value = tostring(vehicleItem.id), label = ('#%d %s'):format(vehicleItem.id, Label(vehicleItem.label)) }
                 end
-                local result = input('Araca bindir', {
-                    { type = 'select', label = 'Araç', options = options, required = true },
+                local result = input(locale('ped.put_in'), {
+                    { type = 'select', label = locale('ped.vehicle'), options = options, required = true },
                 })
                 if result then
                     for _, vehicleItem in ipairs(vehicles) do
@@ -296,7 +296,7 @@ local function pedOptions(item)
             end,
         },
         {
-            title = 'Araçtan in',
+            title = locale('ped.leave'),
             icon = 'right-from-bracket',
             onSelect = function()
                 RequestControl(ped)
@@ -305,19 +305,19 @@ local function pedOptions(item)
             end,
         },
         {
-            title = "Waypoint'e sür",
-            description = 'NPC sürücü koltuğundaysa haritadaki noktaya gider',
+            title = locale('ped.drive'),
+            description = locale('ped.drive_desc'),
             icon = 'route',
             onSelect = function()
                 local vehicle = GetVehiclePedIsIn(ped, false)
                 if vehicle == 0 or GetPedInVehicleSeat(vehicle, -1) ~= ped then
-                    Notify('NPC bir aracın sürücü koltuğunda olmalı', 'error')
+                    Notify(locale('ped.not_driver'), 'error')
                     return reopen()
                 end
                 local target = waypoint()
                 if target then
-                    local result = input("Waypoint'e sür", {
-                        { type = 'number', label = 'Hız (km/s)', default = math.floor(Config.Drive.speed * 3.6), min = 5, max = 200 },
+                    local result = input(locale('ped.drive'), {
+                        { type = 'number', label = locale('ped.speed_kmh'), default = math.floor(Config.Drive.speed * 3.6), min = 5, max = 200 },
                     })
                     if result then
                         RequestControl(ped)
@@ -326,15 +326,15 @@ local function pedOptions(item)
                         SetVehicleEngineOn(vehicle, true, true, false)
                         TaskVehicleDriveToCoordLongrange(ped, vehicle, target.x, target.y, target.z,
                             result[1] / 3.6, Config.Drive.style, 10.0)
-                        Notify('NPC yola çıktı', 'success')
+                        Notify(locale('ped.drove_off'), 'success')
                     end
                 end
                 reopen()
             end,
         },
         {
-            title = 'Rastgele dolaş',
-            description = 'Araçtaysa trafikte sürer, yayaysa yürür',
+            title = locale('ped.wander'),
+            description = locale('ped.wander_desc'),
             icon = 'shuffle',
             onSelect = function()
                 RequestControl(ped)
@@ -349,14 +349,16 @@ local function pedOptions(item)
             end,
         },
         {
-            title = "Waypoint'e yürü",
+            title = locale('ped.walk'),
             icon = 'person-walking-arrow-right',
             onSelect = function()
                 local target = waypoint()
                 if target then
-                    local result = input("Waypoint'e yürü", {
-                        { type = 'select', label = 'Hız', default = '1.0', options = {
-                            { value = '1.0', label = 'Yürü' }, { value = '2.0', label = 'Koş' }, { value = '3.0', label = 'Depar' },
+                    local result = input(locale('ped.walk'), {
+                        { type = 'select', label = locale('ped.speed'), default = '1.0', options = {
+                            { value = '1.0', label = locale('ped.speed_walk') },
+                            { value = '2.0', label = locale('ped.speed_run') },
+                            { value = '3.0', label = locale('ped.speed_sprint') },
                         } },
                     })
                     if result then
@@ -370,7 +372,7 @@ local function pedOptions(item)
             end,
         },
         {
-            title = 'Beni takip et',
+            title = locale('ped.follow'),
             icon = 'people-arrows',
             onSelect = function()
                 RequestControl(ped)
@@ -381,7 +383,7 @@ local function pedOptions(item)
             end,
         },
         {
-            title = 'Bana dön',
+            title = locale('ped.face'),
             icon = 'arrows-rotate',
             onSelect = function()
                 RequestControl(ped)
@@ -391,7 +393,7 @@ local function pedOptions(item)
             end,
         },
         {
-            title = 'Görevi durdur',
+            title = locale('ped.stop'),
             icon = 'hand',
             onSelect = function()
                 StopActivity(ped, item)
@@ -399,7 +401,7 @@ local function pedOptions(item)
             end,
         },
         {
-            title = 'Rastgele kıyafet',
+            title = locale('ped.outfit'),
             icon = 'shirt',
             onSelect = function()
                 RequestControl(ped)
@@ -414,7 +416,7 @@ end
 OpenEntityMenu = function(item)
     if not DoesEntityExist(item.handle) then
         Scene.cleanup()
-        Notify('Varlık artık yok', 'error')
+        Notify(locale('common.entity_gone'), 'error')
         return OpenEntityList()
     end
 
@@ -422,14 +424,14 @@ OpenEntityMenu = function(item)
     local reopen = function() OpenEntityMenu(item) end
     local options = {
         {
-            title = 'Konumu düzenle',
-            description = 'Klavyeyle taşı ve döndür',
+            title = locale('entity.edit'),
+            description = locale('entity.edit_desc'),
             icon = 'up-down-left-right',
             onSelect = function() StartEditor(item, reopen) end,
         },
         {
-            title = 'Koordinat gir',
-            description = 'X, Y, Z ve rotasyonu elle yaz',
+            title = locale('entity.coords'),
+            description = locale('entity.coords_desc'),
             icon = 'crosshairs',
             onSelect = function()
                 exactTransform(item)
@@ -437,7 +439,7 @@ OpenEntityMenu = function(item)
             end,
         },
         {
-            title = 'Önüme getir',
+            title = locale('entity.bring'),
             icon = 'location-arrow',
             onSelect = function()
                 if not RequestControl(entity) then return reopen() end
@@ -452,8 +454,8 @@ OpenEntityMenu = function(item)
             end,
         },
         {
-            title = item.frozen and 'Sabitlemeyi kaldır' or 'Sabitle',
-            description = 'Sabitlenen varlık fizikten etkilenmez, yerinden oynamaz',
+            title = locale(item.frozen and 'entity.unfreeze' or 'entity.freeze'),
+            description = locale('entity.freeze_desc'),
             icon = item.frozen and 'lock-open' or 'lock',
             onSelect = function()
                 RequestControl(entity)
@@ -463,12 +465,12 @@ OpenEntityMenu = function(item)
             end,
         },
         {
-            title = 'Koordinatı kopyala',
+            title = locale('entity.copy_coords'),
             icon = 'copy',
             onSelect = function()
                 local coords, rot = FormatTransform(entity)
                 lib.setClipboard(('%s -- rot %s'):format(coords, rot))
-                Notify('Panoya kopyalandı', 'success')
+                Notify(locale('common.copied'), 'success')
                 reopen()
             end,
         },
@@ -478,7 +480,7 @@ OpenEntityMenu = function(item)
     for _, option in ipairs(extra) do options[#options + 1] = option end
 
     options[#options + 1] = {
-        title = 'Sil',
+        title = locale('common.delete'),
         icon = 'trash',
         iconColor = '#ef4444',
         onSelect = function()
@@ -489,7 +491,7 @@ OpenEntityMenu = function(item)
 
     lib.registerContext({
         id = 'hype_scene_entity',
-        title = ('#%d %s'):format(item.id, item.label),
+        title = ('#%d %s'):format(item.id, Label(item.label)),
         menu = 'hype_scene_entities',
         options = options,
     })
@@ -504,9 +506,10 @@ OpenEntityList = function()
     for _, item in ipairs(Scene.entities) do
         local coords = GetEntityCoords(item.handle)
         options[#options + 1] = {
-            title = ('#%d %s'):format(item.id, item.label),
-            description = ('%.0f m uzakta%s%s'):format(#(coords - GetEntityCoords(cache.ped)),
-                item.frozen and ' · sabit' or '', item.owned and '' or ' · dünyadan seçildi'),
+            title = ('#%d %s'):format(item.id, Label(item.label)),
+            description = locale('entities.distance', #(coords - GetEntityCoords(cache.ped)))
+                .. (item.frozen and locale('entities.frozen_tag') or '')
+                .. (item.owned and '' or locale('entities.world_tag')),
             icon = icons[item.kind],
             arrow = true,
             onSelect = function() OpenEntityMenu(item) end,
@@ -514,102 +517,109 @@ OpenEntityList = function()
     end
 
     if #options == 0 then
-        options[1] = { title = 'Sahnede hiçbir şey yok', disabled = true }
+        options[1] = { title = locale('entities.empty'), disabled = true }
     end
 
-    lib.registerContext({ id = 'hype_scene_entities', title = 'Sahnedeki varlıklar', menu = 'hype_scene_main', options = options })
+    lib.registerContext({ id = 'hype_scene_entities', title = locale('entities.title'), menu = 'hype_scene_main', options = options })
     lib.showContext('hype_scene_entities')
 end
 
 local function selectLookedAt()
     local hit, entity = lib.raycast.fromCamera(2 | 4 | 8 | 16, 4, 40.0)
     if not hit or not entity or entity == 0 or not DoesEntityExist(entity) then
-        return Notify('Baktığın yerde araç, NPC ya da obje yok', 'error')
+        return Notify(locale('select.nothing'), 'error')
     end
 
     local kind = GetEntityKind(entity)
-    if not kind then return Notify('Bu varlık seçilemez', 'error') end
-    if kind == 'ped' and IsPedAPlayer(entity) then return Notify('Oyuncular seçilemez', 'error') end
+    if not kind then return Notify(locale('select.invalid'), 'error') end
+    if kind == 'ped' and IsPedAPlayer(entity) then return Notify(locale('select.player'), 'error') end
 
     local item = Scene.find(entity)
-        or Scene.add(entity, kind, GetEntityModel(entity), ('Seçilen %s'):format(kind == 'ped' and 'NPC' or kind == 'vehicle' and 'araç' or 'obje'), false)
+        or Scene.add(entity, kind, GetEntityModel(entity), 'select.' .. kind, false)
     OpenEntityMenu(item)
+end
+
+--- Translated weather name, or the raw weather type when no translation exists.
+local function weatherLabel(weather)
+    local key = 'weather.' .. weather
+    local text = locale(key)
+    return text ~= key and text or weather
 end
 
 local function openCinemaMenu()
     local weatherOptions = {}
-    for _, weather in ipairs(Config.Weathers) do weatherOptions[#weatherOptions + 1] = { value = weather, label = weather } end
+    for _, weather in ipairs(Config.Weathers) do weatherOptions[#weatherOptions + 1] = { value = weather, label = weatherLabel(weather) } end
 
     lib.registerContext({
         id = 'hype_scene_cinema',
-        title = 'Çekim ayarları',
+        title = locale('cinema.title'),
         menu = 'hype_scene_main',
         options = {
             {
-                title = Cinema.hideHud and 'HUD ve haritayı göster' or 'HUD ve haritayı gizle',
-                description = 'Oyunun kendi HUD’u. Sunucunun özel HUD’u ayrıca kapatılmalı',
+                title = locale(Cinema.hideHud and 'cinema.hud_show' or 'cinema.hud_hide'),
+                description = locale('cinema.hud_desc'),
                 icon = 'eye-slash',
                 onSelect = function() Cinema.toggleHud() openCinemaMenu() end,
             },
             {
-                title = Cinema.noTraffic and 'Trafiği ve yayaları aç' or 'Trafiği ve yayaları kapat',
-                description = 'Sadece senin ekranında. Temiz çekim için',
+                title = locale(Cinema.noTraffic and 'cinema.traffic_on' or 'cinema.traffic_off'),
+                description = locale('cinema.traffic_desc'),
                 icon = 'road',
                 onSelect = function() Cinema.toggleTraffic() openCinemaMenu() end,
             },
             {
-                title = Cinema.timeStopped and 'Zamanı devam ettir' or 'Zamanı durdur',
-                description = ('%dm içindeki NPC, araç ve sahne objeleri olduğu yerde donar, sen serbestsin. Kısayol: Ayarlar > Tuş Atamaları > FiveM'):format(math.floor(Config.TimeStop.radius)),
+                title = locale(Cinema.timeStopped and 'cinema.time_resume' or 'cinema.time_stop'),
+                description = locale('cinema.time_stop_desc', math.floor(Config.TimeStop.radius)),
                 icon = Cinema.timeStopped and 'play' or 'pause',
                 onSelect = function() Cinema.toggleTimeStop() openCinemaMenu() end,
             },
             {
-                title = Talk.gestures and 'Konuşurken el hareketi: Açık' or 'Konuşurken el hareketi: Kapalı',
-                description = ('Sesli sohbette konuşunca ellerin hareket eder. Herkes /%s ile kendisi için açabilir'):format(Config.Talk.command),
+                title = locale(Talk.gestures and 'cinema.gestures_on' or 'cinema.gestures_off'),
+                description = locale('cinema.gestures_desc', Config.Talk.command),
                 icon = 'hands',
                 onSelect = function() Talk.toggleGestures() openCinemaMenu() end,
             },
             {
-                title = Talk.lipSync and 'Dudak senkronu: Açık' or 'Dudak senkronu: Kapalı',
-                description = 'Konuşan oyuncuların ağzı oynar (senin ekranında)',
+                title = locale(Talk.lipSync and 'cinema.lipsync_on' or 'cinema.lipsync_off'),
+                description = locale('cinema.lipsync_desc'),
                 icon = 'comment-dots',
                 onSelect = function() Talk.toggleLipSync() openCinemaMenu() end,
             },
             {
-                title = 'Etrafı temizle',
-                description = 'Yakındaki NPC ve trafik araçlarını kaldırır (sahne ve oyuncu araçları kalır)',
+                title = locale('cinema.clear'),
+                description = locale('cinema.clear_desc'),
                 icon = 'broom',
                 onSelect = function()
-                    local result = input('Etrafı temizle', { { type = 'slider', label = 'Yarıçap (m)', default = 50, min = 10, max = 200 } })
+                    local result = input(locale('cinema.clear'), { { type = 'slider', label = locale('cinema.radius'), default = 50, min = 10, max = 200 } })
                     if result then Cinema.clearArea(result[1] + 0.0) end
                     openCinemaMenu()
                 end,
             },
             {
-                title = 'Saat',
-                description = Cinema.time and ('%02d:%02d sabit'):format(Cinema.time.hour, Cinema.time.minute) or 'Sunucu saati',
+                title = locale('cinema.clock'),
+                description = Cinema.time and locale('cinema.clock_fixed', Cinema.time.hour, Cinema.time.minute) or locale('cinema.clock_server'),
                 icon = 'clock',
                 onSelect = function()
-                    local result = input('Saat', {
-                        { type = 'slider', label = 'Saat', default = Cinema.time and Cinema.time.hour or GetClockHours(), min = 0, max = 23 },
-                        { type = 'slider', label = 'Dakika', default = Cinema.time and Cinema.time.minute or 0, min = 0, max = 59, step = 5 },
+                    local result = input(locale('cinema.clock'), {
+                        { type = 'slider', label = locale('cinema.hour'), default = Cinema.time and Cinema.time.hour or GetClockHours(), min = 0, max = 23 },
+                        { type = 'slider', label = locale('cinema.minute'), default = Cinema.time and Cinema.time.minute or 0, min = 0, max = 59, step = 5 },
                     })
                     if result then Cinema.setTime(result[1], result[2]) end
                     openCinemaMenu()
                 end,
             },
             {
-                title = 'Hava durumu',
-                description = Cinema.weather or 'Sunucu havası',
+                title = locale('cinema.weather'),
+                description = Cinema.weather and weatherLabel(Cinema.weather) or locale('cinema.weather_server'),
                 icon = 'cloud-sun',
                 onSelect = function()
-                    local result = input('Hava durumu', { { type = 'select', label = 'Hava', options = weatherOptions, required = true } })
+                    local result = input(locale('cinema.weather'), { { type = 'select', label = locale('cinema.weather_label'), options = weatherOptions, required = true } })
                     if result then Cinema.setWeather(result[1]) end
                     openCinemaMenu()
                 end,
             },
             {
-                title = 'Saat ve havayı sunucuya bağla',
+                title = locale('cinema.reset'),
                 icon = 'rotate-left',
                 disabled = not Cinema.time and not Cinema.weather,
                 onSelect = function() Cinema.resetWorld() openCinemaMenu() end,
@@ -623,22 +633,22 @@ OpenMainMenu = function()
     Scene.cleanup()
     lib.registerContext({
         id = 'hype_scene_main',
-        title = 'Sahne Aracı',
+        title = locale('title'),
         options = {
             {
-                title = 'Araç oluştur',
+                title = locale('main.spawn_vehicle'),
                 icon = 'truck',
                 arrow = true,
-                onSelect = function() openSpawnMenu('hype_scene_vehicles', 'Araç oluştur', Config.Vehicles, SpawnVehicle) end,
+                onSelect = function() openSpawnMenu('hype_scene_vehicles', locale('main.spawn_vehicle'), Config.Vehicles, SpawnVehicle) end,
             },
             {
-                title = 'NPC oluştur',
+                title = locale('main.spawn_ped'),
                 icon = 'user-plus',
                 arrow = true,
                 onSelect = function()
-                    openSpawnMenu('hype_scene_peds', 'NPC oluştur', Config.Peds, SpawnPed, {
-                        title = 'Kendi kopyam',
-                        description = 'Karakterinin aynısı. Tek kişiyle iki rolü çekmek için',
+                    openSpawnMenu('hype_scene_peds', locale('main.spawn_ped'), Config.Peds, SpawnPed, {
+                        title = locale('spawn.clone'),
+                        description = locale('spawn.clone_desc'),
                         icon = 'clone',
                         onSelect = function()
                             local item = SpawnClone()
@@ -648,59 +658,59 @@ OpenMainMenu = function()
                 end,
             },
             {
-                title = 'Obje oluştur',
+                title = locale('main.spawn_prop'),
                 icon = 'box',
                 arrow = true,
-                onSelect = function() openSpawnMenu('hype_scene_props', 'Obje oluştur', Config.Props, SpawnProp) end,
+                onSelect = function() openSpawnMenu('hype_scene_props', locale('main.spawn_prop'), Config.Props, SpawnProp) end,
             },
             {
-                title = ('Sahnedeki varlıklar (%d)'):format(#Scene.entities),
+                title = locale('main.entities', #Scene.entities),
                 icon = 'list',
                 arrow = true,
                 onSelect = OpenEntityList,
             },
             {
-                title = 'Baktığımı seç',
-                description = 'Nişangahın üstündeki araç, NPC ya da objeyi düzenle',
+                title = locale('main.select_looked'),
+                description = locale('main.select_looked_desc'),
                 icon = 'crosshairs',
                 onSelect = selectLookedAt,
             },
             {
-                title = 'Bana animasyon',
-                description = 'Kendi karakterinde animasyon ve senaryo oynat',
+                title = locale('main.self_anim'),
+                description = locale('main.self_anim_desc'),
                 icon = 'person-walking',
                 arrow = true,
                 onSelect = function() OpenAnimMenu(cache.ped, nil, 'hype_scene_main') end,
             },
             {
-                title = 'Çekim ayarları',
-                description = 'HUD, trafik, saat ve hava',
+                title = locale('main.cinema'),
+                description = locale('main.cinema_desc'),
                 icon = 'video',
                 arrow = true,
                 onSelect = openCinemaMenu,
             },
             {
-                title = 'Sahneler',
-                description = 'Kaydet ve sonra aynen geri yükle',
+                title = locale('main.scenes'),
+                description = locale('main.scenes_desc'),
                 icon = 'film',
                 arrow = true,
                 onSelect = OpenScenesMenu,
             },
             {
-                title = 'Hepsini sil',
-                description = 'Araçtan oluşturduğun her şeyi siler',
+                title = locale('main.delete_all'),
+                description = locale('main.delete_all_desc'),
                 icon = 'trash',
                 iconColor = '#ef4444',
                 onSelect = function()
                     local confirm = lib.alertDialog({
-                        header = 'Hepsini sil',
-                        content = 'Oluşturduğun bütün araç, NPC ve objeler silinsin mi?',
+                        header = locale('main.delete_all'),
+                        content = locale('main.delete_all_confirm'),
                         centered = true,
                         cancel = true,
                     })
                     if confirm == 'confirm' then
                         Scene.clear()
-                        Notify('Sahne temizlendi', 'success')
+                        Notify(locale('main.cleared'), 'success')
                     end
                 end,
             },
@@ -712,7 +722,7 @@ end
 local function open()
     if IsEditing() then return end
     if not lib.callback.await('hype-scenetool:server:canUse', false) then
-        return Notify('Bu aracı kullanma yetkin yok', 'error')
+        return Notify(locale('common.no_permission'), 'error')
     end
     OpenMainMenu()
 end
@@ -722,7 +732,7 @@ RegisterCommand(Config.Command, open, false)
 if Config.Keybind then
     lib.addKeybind({
         name = 'hype_scenetool',
-        description = 'Sahne aracını aç',
+        description = locale('keybind.open'),
         defaultKey = Config.Keybind,
         onPressed = open,
     })
@@ -730,11 +740,11 @@ end
 
 lib.addKeybind({
     name = 'hype_scenetool_timestop',
-    description = 'Sahne aracı: zamanı durdur / devam ettir',
+    description = locale('keybind.timestop'),
     defaultKey = Config.TimeStop.key,
     onPressed = function()
         if not Cinema.timeStopped and not lib.callback.await('hype-scenetool:server:canUse', false) then
-            return Notify('Bu aracı kullanma yetkin yok', 'error')
+            return Notify(locale('common.no_permission'), 'error')
         end
         Cinema.toggleTimeStop()
     end,

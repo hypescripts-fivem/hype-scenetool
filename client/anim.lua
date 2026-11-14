@@ -35,7 +35,7 @@ end
 --- anim = { dict, clip, flag, prop? }
 function PlayAnim(ped, anim, item)
     if not pcall(lib.requestAnimDict, anim.dict, 5000) then
-        return Notify(('Animasyon bulunamadı: %s'):format(anim.dict), 'error')
+        return Notify(locale('error.anim_not_found', anim.dict), 'error')
     end
 
     DetachPedProp(ped)
@@ -70,19 +70,21 @@ function ApplyActivity(ped, activity, item)
     end
 end
 
-local flagOptions = {
-    { value = '1', label = 'Döngü (tüm vücut)' },
-    { value = '49', label = 'Döngü (üst gövde, yürüyebilir)' },
-    { value = '0', label = 'Bir kez' },
-    { value = '48', label = 'Bir kez (üst gövde)' },
-    { value = '2', label = 'Bir kez, son karede kal' },
-}
+local function flagOptions()
+    return {
+        { value = '1', label = locale('anim.flag_loop') },
+        { value = '49', label = locale('anim.flag_loop_upper') },
+        { value = '0', label = locale('anim.flag_once') },
+        { value = '48', label = locale('anim.flag_once_upper') },
+        { value = '2', label = locale('anim.flag_hold') },
+    }
+end
 
 --- item is nil when the target is your own character.
 function OpenAnimMenu(ped, item, parent)
     local options = {
         {
-            title = 'Durdur',
+            title = locale('anim.stop'),
             icon = 'stop',
             onSelect = function()
                 StopActivity(ped, item)
@@ -90,14 +92,14 @@ function OpenAnimMenu(ped, item, parent)
             end,
         },
         {
-            title = 'Özel animasyon',
-            description = 'Dict ve clip adını kendin yaz',
+            title = locale('anim.custom'),
+            description = locale('anim.custom_desc'),
             icon = 'keyboard',
             onSelect = function()
-                local input = lib.inputDialog('Özel animasyon', {
+                local input = lib.inputDialog(locale('anim.custom'), {
                     { type = 'input', label = 'Dict', placeholder = 'anim@heists@box_carry@', required = true },
                     { type = 'input', label = 'Clip', placeholder = 'idle', required = true },
-                    { type = 'select', label = 'Oynatma', options = flagOptions, default = '1', required = true },
+                    { type = 'select', label = locale('anim.playback'), options = flagOptions(), default = '1', required = true },
                 })
                 if input then
                     PlayAnim(ped, { dict = input[1], clip = input[2], flag = tonumber(input[3]) }, item)
@@ -106,12 +108,12 @@ function OpenAnimMenu(ped, item, parent)
             end,
         },
         {
-            title = 'Özel senaryo',
-            description = 'Örn. WORLD_HUMAN_CLIPBOARD',
+            title = locale('anim.custom_scenario'),
+            description = locale('anim.custom_scenario_desc'),
             icon = 'keyboard',
             onSelect = function()
-                local input = lib.inputDialog('Özel senaryo', {
-                    { type = 'input', label = 'Senaryo adı', required = true },
+                local input = lib.inputDialog(locale('anim.custom_scenario'), {
+                    { type = 'input', label = locale('anim.scenario_name'), required = true },
                 })
                 if input then PlayScenario(ped, input[1]:upper(), item) end
                 OpenAnimMenu(ped, item, parent)
@@ -121,8 +123,8 @@ function OpenAnimMenu(ped, item, parent)
 
     for _, anim in ipairs(Config.Animations) do
         options[#options + 1] = {
-            title = anim.label,
-            description = anim.prop and 'Elinde obje ile' or anim.talk and 'Konuşma, dudakları oynar' or nil,
+            title = Label(anim.label),
+            description = anim.prop and locale('anim.with_prop') or anim.talk and locale('anim.talking') or nil,
             icon = 'person-walking',
             onSelect = function()
                 PlayAnim(ped, anim, item)
@@ -133,8 +135,8 @@ function OpenAnimMenu(ped, item, parent)
 
     for _, scenario in ipairs(Config.Scenarios) do
         options[#options + 1] = {
-            title = scenario.label,
-            description = 'Senaryo',
+            title = Label(scenario.label),
+            description = locale('anim.scenario'),
             icon = 'clapperboard',
             onSelect = function()
                 PlayScenario(ped, scenario.name, item)
@@ -145,7 +147,7 @@ function OpenAnimMenu(ped, item, parent)
 
     lib.registerContext({
         id = 'hype_scene_anim',
-        title = item and ('Animasyon: %s'):format(item.label) or 'Animasyon: Ben',
+        title = item and locale('anim.title', Label(item.label)) or locale('anim.title_self'),
         menu = parent,
         options = options,
     })

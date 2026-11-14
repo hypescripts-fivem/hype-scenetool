@@ -9,6 +9,13 @@ dependencies {
     'ox_lib',
 }
 
+-- language: set `setr ox:locale "en"` (tr, en, de, es, fr ...) in server.cfg, falls back to English
+ox_lib 'locale'
+
+files {
+    'locales/*.json',
+}
+
 shared_scripts {
     '@ox_lib/init.lua',
     'config.lua',
