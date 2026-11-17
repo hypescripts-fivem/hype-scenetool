@@ -2,7 +2,7 @@ fx_version 'cerulean'
 game 'gta5'
 
 author 'vezironi'
-description 'Hype Scene Tool: spawn and pose vehicles, NPCs and props for filming trailers and TikTok videos.'
+description 'Hype Scene Tool is an in-game film set for FiveM. Spawn vehicles, NPCs and props, pose them to the centimetre, give them animations and tasks, then save the whole scene to load it again later. Built for server trailers, TikTok clips and roleplay showcases.'
 version '1.0.0'
 
 dependencies {
